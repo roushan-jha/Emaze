@@ -8,7 +8,7 @@ const Header = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
-              <h1 className="text-3xl font-extrabold text-blue-600">
+              <h1 className="text-3xl font-extrabold text-purple-600">
                 Emaze
               </h1>
             </div>
@@ -17,7 +17,7 @@ const Header = () => {
                 <li>
                   <Link
                     href="#"
-                    className="text-gray-500 font-semibold hover:text-blue-600 transition duration-150 ease-in-out"
+                    className="text-gray-500 font-semibold hover:text-purple-600 transition duration-150 ease-in-out"
                   >
                     Home
                   </Link>
@@ -25,7 +25,7 @@ const Header = () => {
                 <li>
                   <Link
                     href="#how-it-works"
-                    className="text-gray-500 font-semibold hover:text-blue-600 transition duration-150 ease-in-out"
+                    className="text-gray-500 font-semibold hover:text-purple-600 transition duration-150 ease-in-out"
                   >
                     How It Works
                   </Link>
@@ -33,7 +33,7 @@ const Header = () => {
                 <li>
                   <Link
                     href="#features"
-                    className="text-gray-500 font-semibold hover:text-blue-600 transition duration-150 ease-in-out"
+                    className="text-gray-500 font-semibold hover:text-purple-600 transition duration-150 ease-in-out"
                   >
                     Features
                   </Link>

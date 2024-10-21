@@ -1,3 +1,6 @@
+"use client"
+
+import Link from "next/link";
 
 const Header = () => {
     return ( 
@@ -12,28 +15,28 @@ const Header = () => {
             <nav>
               <ul className="flex space-x-6">
                 <li>
-                  <a
+                  <Link
                     href="#"
                     className="text-gray-500 font-semibold hover:text-blue-600 transition duration-150 ease-in-out"
                   >
                     Home
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a
+                  <Link
                     href="#how-it-works"
                     className="text-gray-500 font-semibold hover:text-blue-600 transition duration-150 ease-in-out"
                   >
                     How It Works
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a
+                  <Link
                     href="#features"
                     className="text-gray-500 font-semibold hover:text-blue-600 transition duration-150 ease-in-out"
                   >
                     Features
-                  </a>
+                  </Link>
                 </li>
               </ul>
             </nav>

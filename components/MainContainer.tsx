@@ -7,6 +7,9 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 const MainContainer = () => {
     const [image, setImage] = useState<File | null>(null);
     const [loading, setLoading] = useState(false);
+    const [result, setResult] = useState<string | null>(null);
+    const [keywords, setKeywords] = useState<string[]>([]);
+
     const handleImageUpload = (e : React.ChangeEvent<HTMLInputElement>) => {
         if(e.target.files && e.target.files[0]) {
             setImage(e.target.files[0]);
@@ -32,13 +35,42 @@ const MainContainer = () => {
                 imageParts,
             ]);
             const response = await result.response;
-            const text = response.text().trim();
-            
+            const text = response
+                .text()
+                .trim()
+                .replace(/```/g, "")
+                .replace(/\*\*/g, "")
+                .replace(/\*/g, "")
+                .replace(/-\s*/g, "")
+                .replace(/\n\s*\n/g, "\n");
+            setResult(text);
+            generateKeywords(text);
         } catch (error) {
             console.log((error as Error)?.message);
         } finally {
             setLoading(false);
         }
+    };
+
+    const generateKeywords = (text: string) => {
+        const words = text
+            .replace(/[.,\"'!?;:()]/g, "")
+            .toLowerCase()
+            .split(/\s+/);
+        const keywordSet = new Set<string>();
+        words.forEach((word) => {
+          if (
+            word.length > 4 &&
+            !["this", "that", "with", "from", "have"].includes(word)
+          ) {
+            keywordSet.add(word);
+          }
+        });
+        setKeywords(Array.from(keywordSet).slice(0, 5));
+    };
+    
+    const regenerateContent = (keyword: string) => {
+        identifyImage(`Focus more on aspects related to "${keyword}".`);
     };
 
     const fileToGenerativePart = async (file : File) : Promise<{
@@ -60,6 +92,7 @@ const MainContainer = () => {
             reader.readAsDataURL(file);
         })
     }
+
   return (
     <main className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12'>
         <div className='bg-white rounded-lg shadow-xl overflow-hidden'>
@@ -83,6 +116,59 @@ const MainContainer = () => {
                     {loading ? "Identifying..." : "Identify Image"}
                 </button>
             </div>
+            {result && (
+                <div className="bg-purple-50 p-8 border-t border-purple-100">
+                    <h3 className="text-2xl font-bold text-purple-800 mb-4">
+                        Image Information:
+                    </h3>
+                    <div className="prose prose-purple max-w-none">
+                        {result.split("\n").map((line, index) => {
+                        if (
+                            line.startsWith("Important Information:") ||
+                            line.startsWith("Other Information:")
+                        ) {
+                            return (
+                            <h4
+                                key={index}
+                                className="text-xl font-semibold mt-4 mb-2 text-purple-700"
+                            >
+                                {line}
+                            </h4>
+                            );
+                        } else if (line.match(/^\d+\./) || line.startsWith("-")) {
+                            return (
+                            <li key={index} className="ml-4 mb-2 text-gray-700">
+                                {line}
+                            </li>
+                            );
+                        } else if (line.trim() !== "") {
+                            return (
+                            <p key={index} className="mb-2 text-gray-800">
+                                {line}
+                            </p>
+                            );
+                        }
+                        return null;
+                        })}
+                    </div>
+                    <div className="mt-6">
+                        <h4 className="text-lg font-semibold mb-2 text-purple-700">
+                        Related Keywords:
+                        </h4>
+                        <div className="flex flex-wrap gap-2">
+                            {keywords.map((keyword, index) => (
+                                <button
+                                    key={index}
+                                    onClick={() => regenerateContent(keyword)}
+                                    className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-medium hover:bg-purple-200 transition duration-150 ease-in-out"
+                                >
+                                    {keyword}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     </main>
   )

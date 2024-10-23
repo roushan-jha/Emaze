@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react'
 import Image from 'next/image';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 const MainContainer = () => {
     const [image, setImage] = useState<File | null>(null);
@@ -12,7 +13,53 @@ const MainContainer = () => {
         }
     };
 
-    const identifyImage = () => {};
+    const identifyImage = async (additionalPrompt : string = "") => {
+        if(!image) return;
+
+        setLoading(true);
+
+        const apiKey = process.env.NEXT_PUBLIC_GOOGLE_GEMINI_API_KEY;
+        const genAI = new GoogleGenerativeAI(apiKey!);
+
+        const model = genAI.getGenerativeModel({
+            model: "gemini-1.5-flash",
+        });
+
+        try {
+            const imageParts = await fileToGenerativePart(image);
+            const result = await model.generateContent([
+                `Identify this image and provide its name and important information including a brief explanation about that image. ${additionalPrompt}`,
+                imageParts,
+            ]);
+            const response = await result.response;
+            const text = response.text().trim();
+            
+        } catch (error) {
+            console.log((error as Error)?.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const fileToGenerativePart = async (file : File) : Promise<{
+        inlineData : { data: string; mimeType: string }
+    }> => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                const base64Data = reader.result as string;
+                const base64Content = base64Data.split(',')[1];
+                resolve({
+                    inlineData: {
+                        data: base64Content,
+                        mimeType: file.type
+                    }
+                });
+            }
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+        })
+    }
   return (
     <main className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12'>
         <div className='bg-white rounded-lg shadow-xl overflow-hidden'>
@@ -32,7 +79,7 @@ const MainContainer = () => {
                             className='rounded-lg shadow-md' />
                     </div>
                 )}
-                <button type='button' onClick={() => identifyImage} disabled={!image || loading} className='w-full bg-purple-600 text-white py-3 px-4 rounded-lg hover:bg-purple-700 transition duration-150 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed font-medium text-lg'>
+                <button type='button' onClick={() => identifyImage()} disabled={!image || loading} className='w-full bg-purple-600 text-white py-3 px-4 rounded-lg hover:bg-purple-700 transition duration-150 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed font-medium text-lg'>
                     {loading ? "Identifying..." : "Identify Image"}
                 </button>
             </div>

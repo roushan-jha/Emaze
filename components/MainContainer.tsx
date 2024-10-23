@@ -9,6 +9,7 @@ const MainContainer = () => {
     const [loading, setLoading] = useState(false);
     const [result, setResult] = useState<string | null>(null);
     const [keywords, setKeywords] = useState<string[]>([]);
+    const [relatedQuestions, setRelatedQuestions] = useState<string[]>([]);
 
     const handleImageUpload = (e : React.ChangeEvent<HTMLInputElement>) => {
         if(e.target.files && e.target.files[0]) {
@@ -45,6 +46,7 @@ const MainContainer = () => {
                 .replace(/\n\s*\n/g, "\n");
             setResult(text);
             generateKeywords(text);
+            await generateRelatedQuestions(text);
         } catch (error) {
             console.log((error as Error)?.message);
         } finally {
@@ -92,6 +94,35 @@ const MainContainer = () => {
             reader.readAsDataURL(file);
         })
     }
+
+    const generateRelatedQuestions = async (text: string) => {
+        const genAI = new GoogleGenerativeAI(
+          process.env.NEXT_PUBLIC_GOOGLE_GEMINI_API_KEY!
+        );
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    
+        try {
+          const result = await model.generateContent([
+            `Based on the following information about an image, generate 5 related questions that someone might ask to learn more about the subject:
+    
+            ${text}
+    
+            Format the output as a simple list of questions, one per line.`,
+          ]);
+          const response = await result.response;
+          const questions = response.text().trim().split("\n");
+          setRelatedQuestions(questions);
+        } catch (error) {
+          console.error("Error generating related questions:", error);
+          setRelatedQuestions([]);
+        }
+    };
+
+    const askRelatedQuestion = (question: string) => {
+        identifyImage(
+          `Answer the following question about the image: "${question}"`
+        );
+    };
 
   return (
     <main className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12'>
@@ -167,6 +198,25 @@ const MainContainer = () => {
                             ))}
                         </div>
                     </div>
+                    {relatedQuestions.length > 0 && (
+                        <div className="mt-6">
+                            <h4 className="text-lg font-semibold mb-2 text-purple-700">
+                                Related Questions:
+                            </h4>
+                            <ul className="space-y-2">
+                                {relatedQuestions.map((question, index) => (
+                                    <li key={index}>
+                                        <button
+                                        onClick={() => askRelatedQuestion(question)}
+                                        className="text-left w-full bg-purple-100 text-purple-800 px-4 py-2 rounded-lg text-sm font-medium hover:bg-purple-200 transition duration-150 ease-in-out"
+                                        >
+                                            {question}
+                                        </button>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
                 </div>
             )}
         </div>

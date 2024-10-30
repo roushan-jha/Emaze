@@ -18,7 +18,7 @@ const HowItWorks = () => {
                     <div className="text-3xl font-bold text-purple-600 mb-4">
                         {index + 1}
                     </div>
-                    <h3 className="text-xl font-semibold mb-2 text-gray-800">
+                    <h3 className="text-xl font-semibold mb-3 text-gray-800">
                         {step}
                     </h3>
                     <p key={index} className="text-gray-600">
